@@ -109,10 +109,26 @@ export class FileExplorerService {
     }));
   }
 
+  /**
+   *
+   * @param onSuccess 上传成功
+   * @param onError 上传失败
+   * @param data 附加数据
+   * @param file 文件信息
+   * @param fileName 文件名
+   * @param userId 用户ID
+   */
   @action
-  async upload({ onSuccess, onError, data, file, fileOptions, userId }) {
+  async upload({ onSuccess, onError, data, file, fileName, userId }: {
+    onSuccess?: (res: HttpResponse) => void,
+    onError?: (e: any) => void,
+    data?: any
+    file: any,
+    fileName?: string
+    userId: string
+  }) {
     const body = new FormData();
-    body.append('file', file, fileOptions);
+    body.append('file', file, fileName);
     body.append('directory', this.currentDirectory);
     body.append('userId', userId);
     body.append('token', this.token?.id);

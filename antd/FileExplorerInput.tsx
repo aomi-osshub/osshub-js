@@ -60,7 +60,7 @@ export function FileExplorerInput({
     <>
       <Space wrap>
         {files?.map((item, index) => (
-          <FileItem file={item} files={files} key={index} selectEnabled={false} />
+          <FileItem service={props.service} file={item} files={files} key={index} selectEnabled={false} />
         ))}
       </Space>
       <Button children="选择" {...buttonProps} onClick={() => setVisible(true)} />

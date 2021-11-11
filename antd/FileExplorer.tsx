@@ -206,6 +206,7 @@ export class FileExplorer extends Component<FileExplorerProps, any> {
               <Space wrap>
                 {currentFiles.map((file, index) => (
                     <FileItem
+                        service={service}
                         file={file}
                         files={currentFiles}
                         selectFileTypes={selectFileTypes}

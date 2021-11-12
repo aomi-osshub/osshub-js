@@ -54,7 +54,7 @@ export class FileExplorerService {
    */
   tokenUrl;
 
-  tokenArgs: HttpRequest | undefined;
+  getTokenArgs: (() => HttpRequest) | undefined;
 
   @observable
   files: { [key: string]: Array<VirtualFile> } = {
@@ -70,17 +70,17 @@ export class FileExplorerService {
   @observable
   loading = false;
 
-  constructor({ baseApi, tokenUrl, tokenArgs }: {
+  constructor({ baseApi, tokenUrl, getTokenArgs }: {
     baseApi: string,
     tokenUrl: string
-    tokenArgs?: HttpRequest
+    getTokenArgs?: () => HttpRequest
   }) {
     makeAutoObservable(this, undefined, {
       autoBind: true
     });
     this.baseApi = baseApi;
     this.tokenUrl = tokenUrl;
-    this.tokenArgs = tokenArgs;
+    this.getTokenArgs = getTokenArgs;
   }
 
   @action
@@ -113,7 +113,7 @@ export class FileExplorerService {
     this.token = handleResponse(await execute({
       url: this.tokenUrl,
       method: HttpMethod.POST,
-      ...this.tokenArgs
+      ...(this.getTokenArgs?.() || {})
     }));
   }
 

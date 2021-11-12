@@ -63,9 +63,6 @@ export class FileExplorerService {
   currentDirectory = '/';
 
   @observable
-  token: any = {};
-
-  @observable
   loading = false;
 
   constructor({ baseApi, tokenUrl }) {
@@ -77,7 +74,7 @@ export class FileExplorerService {
   }
 
   @action
-  async browse(directory) {
+  async browse(token, directory) {
     if (this.loading) {
       return;
     }
@@ -86,7 +83,7 @@ export class FileExplorerService {
       this.files[directory] = handleResponse(await execute({
         url: `${this.baseApi}/files`,
         body: {
-          token: this.token?.id,
+          token,
           directory
         }
       }));
@@ -97,16 +94,8 @@ export class FileExplorerService {
   }
 
   @action
-  async refresh() {
-    this.browse(this.currentDirectory);
-  }
-
-  @action
-  async updateToken() {
-    this.token = handleResponse(await execute({
-      url: this.tokenUrl,
-      method: HttpMethod.POST
-    }));
+  async refresh(token) {
+    this.browse(token, this.currentDirectory);
   }
 
   /**
@@ -117,21 +106,23 @@ export class FileExplorerService {
    * @param file 文件信息
    * @param fileName 文件名
    * @param userId 用户ID
+   * @param token 授权token
    */
   @action
-  async upload({ onSuccess, onError, data, file, fileName, userId }: {
+  async upload({ onSuccess, onError, data, file, fileName, userId, token }: {
     onSuccess?: (res: HttpResponse) => void,
     onError?: (e: any) => void,
     data?: any
     file: any,
     fileName?: string
     userId: string
+    token: string
   }) {
     const body = new FormData();
     body.append('file', file, fileName);
     body.append('directory', this.currentDirectory);
     body.append('userId', userId);
-    body.append('token', this.token?.id);
+    body.append('token', token);
     data &&
     Object.keys(data).forEach(key => {
       body.append(key, data[key]);
@@ -153,7 +144,7 @@ export class FileExplorerService {
   }
 
   @action
-  async createDirectory(args) {
+  async createDirectory(token, args) {
     if (this.loading) {
       return;
     }
@@ -168,14 +159,14 @@ export class FileExplorerService {
         }
       });
       this.loading = false;
-      await this.browse(this.currentDirectory);
+      await this.browse(token, this.currentDirectory);
     } finally {
       this.loading = false;
     }
   }
 
-  getSource(file, withToken?: boolean): string {
-    return `${this.baseApi}/files/${file.accessSource}${withToken ? `?token=${this.token?.id}` : ''}`;
+  getSource(file, token): string {
+    return `${this.baseApi}/files/${file.accessSource}${!!token ? `?token=${token}` : ''}`;
   }
 
 }

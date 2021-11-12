@@ -1,6 +1,6 @@
 import { action, makeAutoObservable, observable } from 'mobx';
 import { HttpMethod } from '@aomi/common-service/constants/HttpMethod';
-import { execute, HttpResponse } from '@aomi/common-service/HttpService';
+import { execute, HttpRequest, HttpResponse } from '@aomi/common-service/HttpService';
 import { VirtualFile } from './VirtualFile';
 import ErrorCode from '@aomi/common-service/constants/ErrorCode';
 import { ServiceError } from '@aomi/common-service/exception/ServiceError';
@@ -54,6 +54,8 @@ export class FileExplorerService {
    */
   tokenUrl;
 
+  tokenArgs: HttpRequest | undefined;
+
   @observable
   files: { [key: string]: Array<VirtualFile> } = {
     '/': []
@@ -63,18 +65,26 @@ export class FileExplorerService {
   currentDirectory = '/';
 
   @observable
+  token: any = {};
+
+  @observable
   loading = false;
 
-  constructor({ baseApi, tokenUrl }) {
+  constructor({ baseApi, tokenUrl, tokenArgs }: {
+    baseApi: string,
+    tokenUrl: string
+    tokenArgs?: HttpRequest
+  }) {
     makeAutoObservable(this, undefined, {
       autoBind: true
     });
     this.baseApi = baseApi;
     this.tokenUrl = tokenUrl;
+    this.tokenArgs = tokenArgs;
   }
 
   @action
-  async browse(token, directory) {
+  async browse(directory) {
     if (this.loading) {
       return;
     }
@@ -83,7 +93,7 @@ export class FileExplorerService {
       this.files[directory] = handleResponse(await execute({
         url: `${this.baseApi}/files`,
         body: {
-          token,
+          token: this.token?.id,
           directory
         }
       }));
@@ -94,8 +104,17 @@ export class FileExplorerService {
   }
 
   @action
-  async refresh(token) {
-    this.browse(token, this.currentDirectory);
+  async refresh() {
+    this.browse(this.currentDirectory);
+  }
+
+  @action
+  async updateToken() {
+    this.token = handleResponse(await execute({
+      url: this.tokenUrl,
+      method: HttpMethod.POST,
+      ...this.tokenArgs
+    }));
   }
 
   /**
@@ -106,23 +125,21 @@ export class FileExplorerService {
    * @param file 文件信息
    * @param fileName 文件名
    * @param userId 用户ID
-   * @param token 授权token
    */
   @action
-  async upload({ onSuccess, onError, data, file, fileName, userId, token }: {
+  async upload({ onSuccess, onError, data, file, fileName, userId }: {
     onSuccess?: (res: HttpResponse) => void,
     onError?: (e: any) => void,
     data?: any
     file: any,
     fileName?: string
     userId: string
-    token: string
   }) {
     const body = new FormData();
     body.append('file', file, fileName);
     body.append('directory', this.currentDirectory);
     body.append('userId', userId);
-    body.append('token', token);
+    body.append('token', this.token?.id);
     data &&
     Object.keys(data).forEach(key => {
       body.append(key, data[key]);
@@ -144,7 +161,7 @@ export class FileExplorerService {
   }
 
   @action
-  async createDirectory(token, args) {
+  async createDirectory(args) {
     if (this.loading) {
       return;
     }
@@ -159,14 +176,14 @@ export class FileExplorerService {
         }
       });
       this.loading = false;
-      await this.browse(token, this.currentDirectory);
+      await this.browse(this.currentDirectory);
     } finally {
       this.loading = false;
     }
   }
 
-  getSource(file, token): string {
-    return `${this.baseApi}/files/${file.accessSource}${!!token ? `?token=${token}` : ''}`;
+  getSource(file, withToken?: boolean): string {
+    return `${this.baseApi}/files/${file.accessSource}${withToken ? `?token=${this.token?.id}` : ''}`;
   }
 
 }

@@ -50,6 +50,10 @@ export class FileExplorerService {
    */
   baseApi;
   /**
+   * 公网可访问 osshub api 地址
+   */
+  publicBaseApi;
+  /**
    * 获取token的url地址
    */
   tokenUrl;
@@ -70,8 +74,9 @@ export class FileExplorerService {
   @observable
   loading = false;
 
-  constructor({ baseApi, tokenUrl, getTokenArgs }: {
+  constructor({ baseApi, publicBaseApi, tokenUrl, getTokenArgs }: {
     baseApi: string,
+    publicBaseApi: string,
     tokenUrl: string
     getTokenArgs?: (() => Omit<HttpRequest, 'url' | 'method'>) | undefined
   }) {
@@ -79,6 +84,7 @@ export class FileExplorerService {
       autoBind: true
     });
     this.baseApi = baseApi;
+    this.publicBaseApi = publicBaseApi;
     this.tokenUrl = tokenUrl;
     this.getTokenArgs = getTokenArgs;
   }
@@ -183,7 +189,7 @@ export class FileExplorerService {
   }
 
   getSource(file, withToken?: boolean): string {
-    return `${this.baseApi}/files/${file.accessSource}${withToken ? `?token=${this.token?.id}` : ''}`;
+    return `${this.publicBaseApi}/files/${file.accessSource}${withToken ? `?token=${this.token?.id}` : ''}`;
   }
 
 }

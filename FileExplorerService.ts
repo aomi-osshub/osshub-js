@@ -4,6 +4,7 @@ import { execute, HttpRequest, HttpResponse } from '@aomi/common-service/HttpSer
 import { VirtualFile } from './VirtualFile';
 import ErrorCode from '@aomi/common-service/constants/ErrorCode';
 import { ServiceError } from '@aomi/common-service/exception/ServiceError';
+import { ObjectUtils } from '@aomi/utils/ObjectUtils';
 
 export const IMAGE_SUFFIX = ['.jpg', '.jpeg', '.png', '.gif'];
 export const VIDEO_SUFFIX = ['.mp4'];
@@ -94,19 +95,26 @@ export class FileExplorerService {
   }
 
   @action
+  async updateToken() {
+    this.token = handleResponse(await execute({
+      url: this.tokenUrl,
+      method: HttpMethod.POST,
+      ...(this.getTokenArgs?.() || {})
+    }));
+  }
+
+  @action
   async browse(directory) {
     if (this.loading) {
       return;
     }
     this.loading = true;
     try {
-      this.files[directory] = handleResponse(await execute({
+      this.files[directory] = handleResponse(await this.execute({
         url: `${this.baseApi}/files`,
         body: {
-          token: this.token?.id,
           directory
-        },
-        ...this.requestArgs
+        }
       }));
       this.currentDirectory = directory;
     } finally {
@@ -117,15 +125,6 @@ export class FileExplorerService {
   @action
   async refresh() {
     this.browse(this.currentDirectory);
-  }
-
-  @action
-  async updateToken() {
-    this.token = handleResponse(await execute({
-      url: this.tokenUrl,
-      method: HttpMethod.POST,
-      ...(this.getTokenArgs?.() || {})
-    }));
   }
 
   /**
@@ -150,14 +149,13 @@ export class FileExplorerService {
     body.append('file', file, fileName);
     body.append('directory', this.currentDirectory);
     body.append('userId', userId);
-    body.append('token', this.token?.id);
     data &&
     Object.keys(data).forEach(key => {
       body.append(key, data[key]);
     });
 
     try {
-      const payload = await execute({
+      const payload = await this.execute({
         url: `${this.baseApi}/files`,
         method: HttpMethod.POST,
         body,
@@ -178,12 +176,9 @@ export class FileExplorerService {
     }
     this.loading = true;
     try {
-      await execute({
+      await this.execute({
         url: `${this.baseApi}/files/directories`,
         method: HttpMethod.POST,
-        headers: {
-          'X-token': this.token?.id
-        },
         body: {
           parent: this.currentDirectory,
           ...args
@@ -200,4 +195,13 @@ export class FileExplorerService {
     return `${this.publicBaseApi}/files/${file.accessSource}${withToken ? `?token=${this.token?.id}` : ''}`;
   }
 
+  private execute({ headers = {}, ...args }: HttpRequest) {
+    const newHeaders = {
+      ...headers,
+      'X-token': this.token?.id
+    };
+    const requestArgs = ObjectUtils.deepmerge({ ...args, headers: newHeaders }, this.requestArgs);
+
+    return execute(requestArgs);
+  }
 }

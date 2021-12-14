@@ -16,6 +16,7 @@
     "@ant-design/icons": "^4.7.0",
     "@ant-design/pro-form": "^1.46.0",
     "@aomi/common-service": "^1.0.5-Alpha.19",
+    "@aomi/utils": "^1.0.1-Alpha.3",
     "@types/react": "^17.0.34",
     "@types/react-dom": "^17.0.11",
     "antd": "^4.16.13",

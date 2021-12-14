@@ -93,6 +93,14 @@
   resolved "https://registry.yarnpkg.com/@aomi/common-service/-/common-service-1.0.5-Alpha.19.tgz#79cd677bfc293f2276dc2f2c4b77958e460e6105"
   integrity sha512-NbB4Vyptx0Z0rETDUFZ4BZIJkylYoRvlV3ZKAgvGo3LM24SIZ7u5Zp71TwWgNzE/uOnJK2Sqa9Yi1RBoz6PjyA==
 
+"@aomi/utils@^1.0.1-Alpha.3":
+  version "1.0.1-Alpha.3"
+  resolved "https://registry.yarnpkg.com/@aomi/utils/-/utils-1.0.1-Alpha.3.tgz#53261f87475282e6b97a7edf7aedd439f9ccb1fd"
+  integrity sha512-TxiyzksOgG4XOMGpHTujhD7SBhL0hSQyUGhRSi/4SiHKPHpPpxN44i4Cq/ZLoV5oG+cp/Qmy0Frv6hltX5VC4A==
+  optionalDependencies:
+    moment "^2.29.1"
+    object-path "^0.11.5"
+
 "@babel/runtime@^7.10.1", "@babel/runtime@^7.10.2", "@babel/runtime@^7.10.4", "@babel/runtime@^7.11.1", "@babel/runtime@^7.11.2", "@babel/runtime@^7.12.5", "@babel/runtime@^7.2.0", "@babel/runtime@^7.8.4":
   version "7.16.3"
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.16.3.tgz#b86f0db02a04187a3c17caa77de69840165d42d5"
@@ -303,7 +311,7 @@ mobx@^6.3.7:
   resolved "https://registry.yarnpkg.com/mobx/-/mobx-6.3.7.tgz#9ed85561e86da45141134c8fa20cf5f9c7246c3d"
   integrity sha512-X7yU7eOEyxIBk4gjIi2UIilwdw48gXh0kcZ5ex3Rc+COJsJmJ4SNpf42uYea3aUqb1hedTv5xzJrq5Q55p0P5g==
 
-moment@^2.24.0, moment@^2.25.3, moment@^2.27.0:
+moment@^2.24.0, moment@^2.25.3, moment@^2.27.0, moment@^2.29.1:
   version "2.29.1"
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.29.1.tgz#b2be769fa31940be9eeea6469c075e35006fa3d3"
   integrity sha512-kHmoybcPV8Sqy59DwNDY3Jefr64lK/by/da0ViFcuA4DH0vQg5Q6Ze5VimxkfQNSC+Mls/Kx53s7TjP1RhFEDQ==
@@ -312,6 +320,11 @@ object-assign@^4.1.1:
   version "4.1.1"
   resolved "https://registry.yarnpkg.com/object-assign/-/object-assign-4.1.1.tgz#2109adc7965887cfc05cbbd442cac8bfbb360863"
   integrity sha1-IQmtx5ZYh8/AXLvUQsrIv7s2CGM=
+
+object-path@^0.11.5:
+  version "0.11.8"
+  resolved "https://registry.yarnpkg.com/object-path/-/object-path-0.11.8.tgz#ed002c02bbdd0070b78a27455e8ae01fc14d4742"
+  integrity sha512-YJjNZrlXJFM42wTBn6zgOJVar9KFJvzx6sTWDte8sWZF//cnjl0BxHNpfZx+ZffXX63A9q0b1zsFiBX4g4X5KA==
 
 omit.js@^2.0.2:
   version "2.0.2"

@@ -60,6 +60,8 @@ export class FileExplorerService {
 
   getTokenArgs: (() => Omit<HttpRequest, 'url' | 'method'>) | undefined;
 
+  requestArgs: Omit<HttpRequest, 'url' | 'method'> | undefined = {};
+
   @observable
   files: { [key: string]: Array<VirtualFile> } = {
     '/': []
@@ -74,11 +76,12 @@ export class FileExplorerService {
   @observable
   loading = false;
 
-  constructor({ baseApi, publicBaseApi, tokenUrl, getTokenArgs }: {
+  constructor({ baseApi, publicBaseApi, tokenUrl, getTokenArgs, requestArgs }: {
     baseApi: string,
     publicBaseApi: string,
     tokenUrl: string
-    getTokenArgs?: (() => Omit<HttpRequest, 'url' | 'method'>) | undefined
+    getTokenArgs?: (() => Omit<HttpRequest, 'url' & 'method'>)
+    requestArgs?: Omit<HttpRequest, 'url' | 'method'>
   }) {
     makeAutoObservable(this, undefined, {
       autoBind: true
@@ -87,6 +90,7 @@ export class FileExplorerService {
     this.publicBaseApi = publicBaseApi;
     this.tokenUrl = tokenUrl;
     this.getTokenArgs = getTokenArgs;
+    this.requestArgs = requestArgs;
   }
 
   @action
@@ -101,7 +105,8 @@ export class FileExplorerService {
         body: {
           token: this.token?.id,
           directory
-        }
+        },
+        ...this.requestArgs
       }));
       this.currentDirectory = directory;
     } finally {

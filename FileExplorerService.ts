@@ -181,6 +181,9 @@ export class FileExplorerService {
       await execute({
         url: `${this.baseApi}/files/directories`,
         method: HttpMethod.POST,
+        headers: {
+          'X-token': this.token?.id
+        },
         body: {
           parent: this.currentDirectory,
           ...args

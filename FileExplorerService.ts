@@ -200,7 +200,7 @@ export class FileExplorerService {
       ...headers,
       'X-token': this.token?.id
     };
-    const requestArgs = ObjectUtils.deepmerge({ ...args, headers: newHeaders }, this.requestArgs);
+    const requestArgs = ObjectUtils.deepmerge({ timeout: 60000 * 3, ...args, headers: newHeaders }, this.requestArgs);
 
     return execute(requestArgs);
   }

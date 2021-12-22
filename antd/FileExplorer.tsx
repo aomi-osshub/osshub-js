@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { autoBind } from 'jsdk/autoBind';
 import { observer } from 'mobx-react';
-import { Breadcrumb, Button, Card, Checkbox, Empty, Popover, Radio, Row, Space, Tooltip } from 'antd';
+import { Breadcrumb, Button, Card, Checkbox, Empty, Popover, Radio, Space, Tooltip } from 'antd';
 import { DeleteOutlined, FolderAddOutlined, HomeOutlined, ReloadOutlined, UploadOutlined } from '@ant-design/icons';
 import { ModalForm, ProFormText, ProFormUploadDragger } from '@ant-design/pro-form';
 import { VirtualFile } from '../VirtualFile';
@@ -159,23 +159,19 @@ export class FileExplorer extends Component<FileExplorerProps, any> {
 
     return (
         <>
-          <Row>
-            <span>{'文件管理器'}</span>
-            <Breadcrumb>
-              <Breadcrumb.Item onClick={() => service.browse('/')}>
-            <span style={{ cursor: 'pointer' }}>
-              <HomeOutlined/>
-            </span>
-              </Breadcrumb.Item>
-              {breadcrumbs.map((item, index) => (
-                  <Breadcrumb.Item
-                      key={index}
-                      onClick={() => service.browse(`/${breadcrumbs.slice(0, index + 1).join('/')}`)}>
-                    <span style={{ cursor: 'pointer' }}>{item}</span>
-                  </Breadcrumb.Item>
-              ))}
-            </Breadcrumb>
-          </Row>
+          <span>{'文件管理器'}</span>
+          <Breadcrumb>
+            <Breadcrumb.Item onClick={() => service.browse('/')}>
+              <span style={{ cursor: 'pointer' }}><HomeOutlined/></span>
+            </Breadcrumb.Item>
+            {breadcrumbs.map((item, index) => (
+                <Breadcrumb.Item
+                    key={index}
+                    onClick={() => service.browse(`/${breadcrumbs.slice(0, index + 1).join('/')}`)}>
+                  <span style={{ cursor: 'pointer' }}>{item}</span>
+                </Breadcrumb.Item>
+            ))}
+          </Breadcrumb>
           {selectMode === 'checkbox' && (
               <Checkbox onChange={this.handleSelectAll}>{'全选'}</Checkbox>
           )}
@@ -258,7 +254,7 @@ export class FileExplorer extends Component<FileExplorerProps, any> {
                 onChange={this.handleSelect}
                 value={selectMode === 'radio' ? selectedFileIds?.[0] : selectedFileIds}>
               <Space wrap>
-                {currentFiles.map((file, index) => (
+                {currentFiles.map((file) => (
                     <FileItem
                         service={service}
                         file={file}
@@ -266,7 +262,7 @@ export class FileExplorer extends Component<FileExplorerProps, any> {
                         selectFileTypes={selectFileTypes}
                         selectMode={selectMode}
                         selectedFileIds={selectedFileIds}
-                        key={index}
+                        key={file.id}
                     />
                 ))}
               </Space>

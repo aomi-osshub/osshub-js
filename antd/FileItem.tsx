@@ -12,22 +12,22 @@ import { FileExplorerService, isImage, isVideo } from '../FileExplorerService';
 
 const thumbnailStyle = { width: 'auto', height: 80 };
 
-export function renderThumbnail(service,file, { onImageClick }) {
+export function renderThumbnail(service, file, { onImageClick }) {
   const { type, name } = file;
   if (type === FileType.DIRECTORY) {
-    return <img alt={name} src={folderIcon} style={thumbnailStyle} />;
+    return <img alt={name} src={folderIcon} style={thumbnailStyle}/>;
   }
 
   const source = service.getSource(file);
   if (isImage(name)) {
     return (
-      <Image style={thumbnailStyle} src={source} fallback={file} preview={{ visible: false }} onClick={onImageClick} />
+        <Image style={thumbnailStyle} src={source} fallback={file} preview={{ visible: false }} onClick={onImageClick}/>
     );
   } else if (isVideo(name)) {
-    return <video src={source} style={thumbnailStyle} />;
+    return <video src={source} style={thumbnailStyle}/>;
   }
 
-  return <img alt={name} src={fileIcon} style={thumbnailStyle} />;
+  return <img alt={name} src={fileIcon} style={thumbnailStyle}/>;
 }
 
 export type FileItemProps = {
@@ -70,7 +70,7 @@ export function FileItem(props: FileItemProps) {
     selectEnabled = true,
     selectMode = 'checkbox',
     selectFileTypes = [],
-    selectedFileIds = [],
+    selectedFileIds = []
   } = props;
   const { type, name, directory } = file;
 
@@ -90,7 +90,7 @@ export function FileItem(props: FileItemProps) {
   const checked = selectedFileIds.includes(file.id);
   const checkboxProps: any = {
     checked,
-    value: file.id,
+    value: file.id
   };
   if (selectFileTypes.length > 0 && !(selectFileTypes.includes(name.substring(name.lastIndexOf('.'))) || selectFileTypes.includes(type))) {
     checkboxProps.disabled = true;
@@ -106,26 +106,26 @@ export function FileItem(props: FileItemProps) {
   const SelectItem = selectMode === 'radio' ? Radio : Checkbox;
 
   return (
-    <Tooltip title={name} placement="bottom">
-      <div className={styles.item}>
-        <div className={styles.itemContent} onClick={handleClick}>
-          {renderThumbnail(service,file, { onImageClick: () => setVisiblePreview(true) })}
-          <p className={styles.itemName}>{name}</p>
-          <div style={{ display: 'none' }}>
-            <Image.PreviewGroup
-              preview={{
-                visible: visiblePreview,
-                onVisibleChange: vis => setVisiblePreview(vis),
-                current: images.findIndex(item => item.id === file.id),
-              }}>
-              {images.map((item, index) => (
-                <Image key={index} src={service.getSource(item)} />
-              ))}
-            </Image.PreviewGroup>
+      <Tooltip title={name} placement="bottom">
+        <div className={styles.item}>
+          <div className={styles.itemContent} onClick={handleClick}>
+            {renderThumbnail(service, file, { onImageClick: () => setVisiblePreview(true) })}
+            <p className={styles.itemName}>{name}</p>
+            <div style={{ display: 'none' }}>
+              <Image.PreviewGroup
+                  preview={{
+                    visible: visiblePreview,
+                    onVisibleChange: vis => setVisiblePreview(vis),
+                    current: images.findIndex(item => item.id === file.id)
+                  }}>
+                {images.map((item, index) => (
+                    <Image key={index} src={service.getSource(item)}/>
+                ))}
+              </Image.PreviewGroup>
+            </div>
           </div>
+          <SelectItem {...checkboxProps} className={styles.itemCheckbox} key={file.id}/>
         </div>
-        <SelectItem {...checkboxProps} className={styles.itemCheckbox} />
-      </div>
-    </Tooltip>
+      </Tooltip>
   );
 }

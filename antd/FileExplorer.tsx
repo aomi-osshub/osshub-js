@@ -7,6 +7,7 @@ import { ModalForm, ProFormText, ProFormUploadDragger } from '@ant-design/pro-fo
 import { VirtualFile } from '../VirtualFile';
 import { FileExplorerService } from '../FileExplorerService';
 import { FileItem } from './FileItem';
+import { AllFileType } from '../FileType';
 
 const ModalConfig = {
   directory: {
@@ -124,9 +125,13 @@ export class FileExplorer extends Component<FileExplorerProps, any> {
 
   handleSelectAll(e) {
     const checked = e.target.checked;
+    const { selectFileTypes } = this.props;
     const { files, currentDirectory } = this.props.service;
     if (checked) {
-      const selectedFiles = files[currentDirectory];
+      const selectedFiles = selectFileTypes ? files[currentDirectory].filter(({ name, type }) => {
+        return selectFileTypes.includes(name.substring(name.lastIndexOf('.'))) || AllFileType.includes(type);
+      }) : files[currentDirectory];
+
       const selectedFileIds = selectedFiles.map(item => item.id);
       this.props.service.selected(selectedFileIds, selectedFiles);
     } else {

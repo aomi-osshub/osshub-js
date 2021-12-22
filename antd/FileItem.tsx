@@ -6,7 +6,7 @@ import fileIcon from './GenericDocumentIcon.svg';
 import folderIcon from './GenericFolderIcon.svg';
 
 import styles from './filexplorer.module.scss';
-import { FileType } from '../FileType';
+import { AllFileType, FileType } from '../FileType';
 import { VirtualFile } from '../VirtualFile';
 import { FileExplorerService, isImage, isVideo } from '../FileExplorerService';
 
@@ -92,7 +92,7 @@ export function FileItem(props: FileItemProps) {
     checked,
     value: file.id,
   };
-  if (selectFileTypes.length > 0 && !selectFileTypes.includes(name.substring(name.lastIndexOf('.')))) {
+  if (selectFileTypes.length > 0 && !selectFileTypes.includes(name.substring(name.lastIndexOf('.'))) || AllFileType.includes(type)) {
     checkboxProps.disabled = true;
   }
   if (checked) {

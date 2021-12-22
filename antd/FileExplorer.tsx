@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { autoBind } from 'jsdk/autoBind';
 import { observer } from 'mobx-react';
-import { Breadcrumb, Button, Card, Checkbox, Empty, Popover, Radio, Space, Tooltip } from 'antd';
+import { Breadcrumb, Button, Card, Checkbox, Empty, Popover, Radio, Row, Space, Tooltip } from 'antd';
 import { DeleteOutlined, FolderAddOutlined, HomeOutlined, ReloadOutlined, UploadOutlined } from '@ant-design/icons';
 import { ModalForm, ProFormText, ProFormUploadDragger } from '@ant-design/pro-form';
 import { VirtualFile } from '../VirtualFile';
@@ -61,6 +61,8 @@ export type FileExplorerProps = {
    * @see mode
    */
   files?: Array<VirtualFile>;
+
+  accept?: string
 };
 
 /**
@@ -73,16 +75,13 @@ export class FileExplorer extends Component<FileExplorerProps, any> {
   state: any = {
     formVisible: false,
     confirmDeleteVisible: false,
-    modalType: '',
-
-    selectedFiles: [],
-    selectedFileIds: []
+    modalType: ''
   };
 
   constructor(props) {
     super(props);
     this.init(props.service);
-    this.state.selectedFileIds = props.defaultValue || [];
+    props.service.selected(props.defaultValue || []);
   }
 
   async init(service: FileExplorerService) {
@@ -101,8 +100,8 @@ export class FileExplorer extends Component<FileExplorerProps, any> {
   handleSelect(e) {
     const { selectMode, onSelect, service } = this.props;
     const { files } = service;
-    let selectedFileIds = this.state.selectedFileIds;
-    let selectedFiles = this.state.selectedFiles;
+    let selectedFileIds = service.selectedFileIds;
+    let selectedFiles = service.selectedFiles;
     if (selectMode === 'checkbox') {
       selectedFileIds = e;
       selectedFiles = [];
@@ -117,13 +116,22 @@ export class FileExplorer extends Component<FileExplorerProps, any> {
         tmp && (selectedFile = tmp);
       });
       selectedFileIds = [selectedFileId];
-      selectedFiles = [selectedFile];
+      selectedFile && (selectedFiles = [selectedFile]);
     }
-    this.setState({
-      selectedFileIds,
-      selectedFiles
-    });
+    service.selected(selectedFileIds, selectedFiles);
     onSelect?.(selectedFileIds, selectedFiles);
+  }
+
+  handleSelectAll(e) {
+    const checked = e.target.checked;
+    const { files, currentDirectory } = this.props.service;
+    if (checked) {
+      const selectedFiles = files[currentDirectory];
+      const selectedFileIds = selectedFiles.map(item => item.id);
+      this.props.service.selected(selectedFileIds, selectedFiles);
+    } else {
+      this.props.service.selected([], []);
+    }
   }
 
   /**
@@ -132,7 +140,6 @@ export class FileExplorer extends Component<FileExplorerProps, any> {
   async handleFormSubmit(formData) {
     const { service, userId } = this.props;
     const { modalType } = this.state;
-    console.log(modalType, formData);
     switch (modalType) {
       case 'directory':
         await service.createDirectory({ ...formData, userId });
@@ -142,36 +149,41 @@ export class FileExplorer extends Component<FileExplorerProps, any> {
   }
 
   renderTitle() {
-    const { service } = this.props;
+    const { service, selectMode } = this.props;
     const { currentDirectory } = service;
     const breadcrumbs = currentDirectory.split('/').filter(item => !!item);
 
     return (
         <>
-          <span>{'文件管理器'}</span>
-          <Breadcrumb>
-            <Breadcrumb.Item onClick={() => service.browse('/')}>
+          <Row>
+            <span>{'文件管理器'}</span>
+            <Breadcrumb>
+              <Breadcrumb.Item onClick={() => service.browse('/')}>
             <span style={{ cursor: 'pointer' }}>
               <HomeOutlined/>
             </span>
-            </Breadcrumb.Item>
-            {breadcrumbs.map((item, index) => (
-                <Breadcrumb.Item
-                    key={index}
-                    onClick={() => service.browse(`/${breadcrumbs.slice(0, index + 1).join('/')}`)}>
-                  <span style={{ cursor: 'pointer' }}>{item}</span>
-                </Breadcrumb.Item>
-            ))}
-          </Breadcrumb>
+              </Breadcrumb.Item>
+              {breadcrumbs.map((item, index) => (
+                  <Breadcrumb.Item
+                      key={index}
+                      onClick={() => service.browse(`/${breadcrumbs.slice(0, index + 1).join('/')}`)}>
+                    <span style={{ cursor: 'pointer' }}>{item}</span>
+                  </Breadcrumb.Item>
+              ))}
+            </Breadcrumb>
+          </Row>
+          {selectMode === 'checkbox' && (
+              <Checkbox onChange={this.handleSelectAll}>{'全选'}</Checkbox>
+          )}
         </>
     );
   }
 
   renderAction() {
     const { service, value } = this.props;
-    const { confirmDeleteVisible, selectedFileIds: currentValue } = this.state;
+    const { confirmDeleteVisible } = this.state;
 
-    const selectedFileIds = value || currentValue;
+    const selectedFileIds = value || service.selectedFileIds;
 
     return (
         <Space>
@@ -218,8 +230,8 @@ export class FileExplorer extends Component<FileExplorerProps, any> {
   }
 
   render() {
-    const { selectFileTypes, selectMode = 'checkbox', mode = 'explorer', files: userFiles = [], value, service, userId } = this.props;
-    const { formVisible, modalType, selectedFileIds: currentValue } = this.state;
+    const { selectFileTypes, selectMode = 'checkbox', mode = 'explorer', files: userFiles = [], value, service, userId, accept } = this.props;
+    const { formVisible, modalType } = this.state;
     const { files, currentDirectory, loading } = service;
 
     const currentFiles = mode === 'browser' ? userFiles : files[currentDirectory] || [];
@@ -228,7 +240,7 @@ export class FileExplorer extends Component<FileExplorerProps, any> {
 
     const SelectGroup = selectMode === 'radio' ? Radio.Group : Checkbox.Group;
 
-    const selectedFileIds = value || currentValue;
+    const selectedFileIds: any = value || service.selectedFileIds;
 
     const cardProps: any = {};
     if (mode === 'explorer') {
@@ -272,7 +284,7 @@ export class FileExplorer extends Component<FileExplorerProps, any> {
             {modalType === 'upload' && (
                 <ProFormUploadDragger name="file" required fieldProps={{
                   multiple: true,
-                  accept: '.jpg,.jpeg,.png,.mp4',
+                  accept: accept || '.jpg,.jpeg,.png,.mp4',
                   // 直接返回文件，不执行上传动作,等待最终提交
                   customRequest: (args: any) => service.upload({ ...args, userId })
                 }}/>

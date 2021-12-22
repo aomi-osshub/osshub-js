@@ -77,6 +77,18 @@ export class FileExplorerService {
   @observable
   loading = false;
 
+  /**
+   * 当前选择的文件
+   */
+  @observable
+  selectedFiles: Array<VirtualFile> = [];
+
+  /**
+   * 当前选择的文件ID
+   */
+  @observable
+  selectedFileIds: Array<string> = [];
+
   constructor({ baseApi, publicBaseApi, tokenUrl, getTokenArgs, requestArgs }: {
     baseApi: string,
     publicBaseApi: string,
@@ -125,6 +137,14 @@ export class FileExplorerService {
   @action
   async refresh() {
     this.browse(this.currentDirectory);
+  }
+
+  @action
+  selected(fileIds?: Array<string>, files?: Array<VirtualFile>) {
+    if (fileIds) {
+      this.selectedFileIds = fileIds;
+    }
+    files && (this.selectedFiles = files);
   }
 
   /**

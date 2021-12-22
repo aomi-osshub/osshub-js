@@ -191,6 +191,25 @@ export class FileExplorerService {
     }
   }
 
+  @action
+  async del(ids) {
+    if (this.loading) {
+      return;
+    }
+    this.loading = true;
+    try {
+      await this.execute({
+        url: `${this.baseApi}/files`,
+        method: HttpMethod.DELETE,
+        body: ids
+      });
+      this.loading = false;
+      this.refresh();
+    } finally {
+      this.loading = false;
+    }
+  }
+
   getSource(file, withToken?: boolean): string {
     return `${this.publicBaseApi}/files/${file.accessSource}${withToken ? `?token=${this.token?.id}` : ''}`;
   }

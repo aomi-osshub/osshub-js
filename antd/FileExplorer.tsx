@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { autoBind } from 'jsdk/autoBind';
 import { observer } from 'mobx-react';
-import { Breadcrumb, Button, Card, Checkbox, Empty, Radio, Space, Tooltip } from 'antd';
-import { FolderAddOutlined, HomeOutlined, ReloadOutlined, UploadOutlined } from '@ant-design/icons';
+import { Breadcrumb, Button, Card, Checkbox, Empty, Popover, Radio, Space, Tooltip } from 'antd';
+import { DeleteOutlined, FolderAddOutlined, HomeOutlined, ReloadOutlined, UploadOutlined } from '@ant-design/icons';
 import { ModalForm, ProFormText, ProFormUploadDragger } from '@ant-design/pro-form';
 import { VirtualFile } from '../VirtualFile';
 import { FileExplorerService } from '../FileExplorerService';
@@ -10,10 +10,10 @@ import { FileItem } from './FileItem';
 
 const ModalConfig = {
   directory: {
-    title: '创建文件夹',
+    title: '创建文件夹'
   },
   upload: {
-    title: '文件上传',
+    title: '文件上传'
   }
 };
 
@@ -72,6 +72,7 @@ export type FileExplorerProps = {
 export class FileExplorer extends Component<FileExplorerProps, any> {
   state: any = {
     formVisible: false,
+    confirmDeleteVisible: false,
     modalType: '',
 
     selectedFiles: [],
@@ -91,6 +92,10 @@ export class FileExplorer extends Component<FileExplorerProps, any> {
 
   switchFormVisible() {
     this.setState({ formVisible: !this.state.formVisible });
+  }
+
+  toggleConfirmDelete() {
+    this.setState({ confirmDeleteVisible: !this.state.confirmDeleteVisible });
   }
 
   handleSelect(e) {
@@ -136,15 +141,12 @@ export class FileExplorer extends Component<FileExplorerProps, any> {
     this.setState({ formVisible: false });
   }
 
-  render() {
-    const { selectFileTypes, selectMode = 'checkbox', mode = 'explorer', files: userFiles = [], value, service, userId } = this.props;
-    const { formVisible, modalType, selectedFileIds: currentValue } = this.state;
-    const { files, currentDirectory, loading } = service;
-
-    const currentFiles = mode === 'browser' ? userFiles : files[currentDirectory] || [];
-
+  renderTitle() {
+    const { service } = this.props;
+    const { currentDirectory } = service;
     const breadcrumbs = currentDirectory.split('/').filter(item => !!item);
-    const title = (
+
+    return (
         <>
           <span>{'文件管理器'}</span>
           <Breadcrumb>
@@ -163,33 +165,64 @@ export class FileExplorer extends Component<FileExplorerProps, any> {
           </Breadcrumb>
         </>
     );
+  }
 
-    const cardProps: any = {};
-    if (mode === 'explorer') {
-      cardProps.extra = (
-          <Space>
-            <Tooltip title="刷新">
-              <Button type="primary" shape="circle" icon={<ReloadOutlined/>} onClick={service.refresh}/>
-            </Tooltip>
-            <Tooltip title="新建文件夹">
-              <Button
-                  type="primary"
-                  shape="circle"
-                  icon={<FolderAddOutlined/>}
-                  onClick={() => this.setState({ formVisible: true, modalType: 'directory' })}
-              />
-            </Tooltip>
-            <Tooltip title="文件上传">
-              <Button
-                  type="primary"
-                  shape="circle"
-                  icon={<UploadOutlined/>}
-                  onClick={() => this.setState({ formVisible: true, modalType: 'upload' })}
-              />
-            </Tooltip>
-          </Space>
-      );
-    }
+  renderAction() {
+    const { service, value } = this.props;
+    const { confirmDeleteVisible, selectedFileIds: currentValue } = this.state;
+
+    const selectedFileIds = value || currentValue;
+
+    return (
+        <Space>
+          <Tooltip title="文件删除">
+            <Popover
+                content={
+                  <Space>
+                    <Button size="small" onClick={this.toggleConfirmDelete}>{'取消'}</Button>
+                    <Button size="small" type="primary" danger onClick={() => {
+                      this.toggleConfirmDelete();
+                      service.del(selectedFileIds);
+                    }}>{'确认'}</Button>
+                  </Space>
+                }
+                title="文件删除后无法恢复,请确认是否要删除选中的文件"
+                trigger="click"
+                visible={confirmDeleteVisible}
+                onVisibleChange={this.toggleConfirmDelete}
+            >
+              <Button type="primary" shape="circle" danger icon={<DeleteOutlined/>} disabled={selectedFileIds?.length === 0}/>
+            </Popover>
+          </Tooltip>
+          <Tooltip title="新建文件夹">
+            <Button
+                type="primary"
+                shape="circle"
+                icon={<FolderAddOutlined/>}
+                onClick={() => this.setState({ formVisible: true, modalType: 'directory' })}
+            />
+          </Tooltip>
+          <Tooltip title="文件上传">
+            <Button
+                type="primary"
+                shape="circle"
+                icon={<UploadOutlined/>}
+                onClick={() => this.setState({ formVisible: true, modalType: 'upload' })}
+            />
+          </Tooltip>
+          <Tooltip title="刷新">
+            <Button type="primary" shape="circle" icon={<ReloadOutlined/>} onClick={service.refresh}/>
+          </Tooltip>
+        </Space>
+    );
+  }
+
+  render() {
+    const { selectFileTypes, selectMode = 'checkbox', mode = 'explorer', files: userFiles = [], value, service, userId } = this.props;
+    const { formVisible, modalType, selectedFileIds: currentValue } = this.state;
+    const { files, currentDirectory, loading } = service;
+
+    const currentFiles = mode === 'browser' ? userFiles : files[currentDirectory] || [];
 
     const modalConfig = ModalConfig[modalType] || {};
 
@@ -197,9 +230,14 @@ export class FileExplorer extends Component<FileExplorerProps, any> {
 
     const selectedFileIds = value || currentValue;
 
+    const cardProps: any = {};
+    if (mode === 'explorer') {
+      cardProps.extra = this.renderAction();
+    }
+
     return (
         <>
-          <Card {...cardProps} title={title} loading={loading} bordered={false}>
+          <Card {...cardProps} title={this.renderTitle()} loading={loading} bordered={false}>
             <SelectGroup
                 onChange={this.handleSelect}
                 value={selectMode === 'radio' ? selectedFileIds?.[0] : selectedFileIds}>

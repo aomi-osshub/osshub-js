@@ -128,6 +128,11 @@ export class FileExplorerService {
           directory
         }
       }));
+      if (this.currentDirectory !== directory) {
+        console.log('目录变更,清空选择的文件');
+        this.selectedFileIds = [];
+        this.selectedFiles = [];
+      }
       this.currentDirectory = directory;
     } finally {
       this.loading = false;

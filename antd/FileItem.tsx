@@ -72,7 +72,7 @@ export function FileItem(props: FileItemProps) {
     selectFileTypes = [],
     selectedFileIds = []
   } = props;
-  const { type, name, directory } = file;
+  const { type, name, fullName } = file;
 
   // 图片浏览弹框启用关闭状态
   const [visiblePreview, setVisiblePreview] = useState(false);
@@ -82,7 +82,7 @@ export function FileItem(props: FileItemProps) {
 
   function handleClick() {
     if (type === FileType.DIRECTORY) {
-      service.browse(`${directory === '/' ? '' : directory}/${name}`);
+      service.browse(fullName);
       return;
     }
   }

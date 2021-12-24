@@ -1,12 +1,14 @@
 import React, { Component } from 'react';
 import { autoBind } from 'jsdk/autoBind';
 import { observer } from 'mobx-react';
-import { Breadcrumb, Button, Card, Checkbox, Empty, Popover, Radio, Space, Tooltip } from 'antd';
-import { DeleteOutlined, FolderAddOutlined, HomeOutlined, ReloadOutlined, UploadOutlined } from '@ant-design/icons';
+import { Breadcrumb, Button, Card, Checkbox, Empty, Form, Popover, Radio, Space, Tooltip, TreeSelect } from 'antd';
+import { DeleteOutlined, DragOutlined, FolderAddOutlined, HomeOutlined, ReloadOutlined, UploadOutlined } from '@ant-design/icons';
 import { ModalForm, ProFormText, ProFormUploadDragger } from '@ant-design/pro-form';
 import { VirtualFile } from '../VirtualFile';
 import { FileExplorerService } from '../FileExplorerService';
 import { FileItem } from './FileItem';
+import { DataNode } from 'rc-tree-select/lib/interface';
+import { FileType } from '../FileType';
 
 const ModalConfig = {
   directory: {
@@ -14,6 +16,9 @@ const ModalConfig = {
   },
   upload: {
     title: '文件上传'
+  },
+  move: {
+    title: '移动文件'
   }
 };
 
@@ -61,6 +66,12 @@ export type FileExplorerProps = {
    * @see mode
    */
   files?: Array<VirtualFile>;
+
+  /**
+   * 是否显示标题
+   * 默认显示
+   */
+  showTitle?: boolean
 
   accept?: string
 };
@@ -148,18 +159,26 @@ export class FileExplorer extends Component<FileExplorerProps, any> {
       case 'directory':
         await service.createDirectory({ ...formData, userId });
         break;
+      case 'move':
+        await service.move(formData?.targetDir);
+        break;
     }
     this.setState({ formVisible: false });
   }
 
+  async handleTreeSelectLoadData(dataNode) {
+    const { service } = this.props;
+    await service.browse(dataNode.fullName);
+  }
+
   renderTitle() {
-    const { service, selectMode } = this.props;
+    const { service, selectMode, showTitle = true } = this.props;
     const { currentDirectory } = service;
     const breadcrumbs = currentDirectory.split('/').filter(item => !!item);
 
     return (
         <>
-          <span>{'文件管理器'}</span>
+          {showTitle && <span>{'文件管理器'}</span>}
           <Breadcrumb>
             <Breadcrumb.Item onClick={() => service.browse('/')}>
               <span style={{ cursor: 'pointer' }}><HomeOutlined/></span>
@@ -222,6 +241,14 @@ export class FileExplorer extends Component<FileExplorerProps, any> {
                 onClick={() => this.setState({ formVisible: true, modalType: 'upload' })}
             />
           </Tooltip>
+          <Tooltip title="移动到新文件夹">
+            <Button type="primary"
+                    shape="circle"
+                    icon={<DragOutlined/>}
+                    disabled={selectedFileIds?.length <= 0}
+                    onClick={() => this.setState({ formVisible: true, modalType: 'move' })}
+            />
+          </Tooltip>
           <Tooltip title="刷新">
             <Button type="primary" shape="circle" icon={<ReloadOutlined/>} onClick={service.refresh}/>
           </Tooltip>
@@ -246,6 +273,17 @@ export class FileExplorer extends Component<FileExplorerProps, any> {
     if (mode === 'explorer') {
       cardProps.extra = this.renderAction();
     }
+
+    const treeDataNode: Array<DataNode> = [];
+    Object.values(files).forEach((item) => item.filter(f => f.type === FileType.DIRECTORY).map(f => {
+      treeDataNode.push({
+        ...f,
+        pId: f.directoryId || '',
+        title: f.name,
+        key: f.fullName,
+        value: f.fullName
+      });
+    }));
 
     return (
         <>
@@ -288,6 +326,16 @@ export class FileExplorer extends Component<FileExplorerProps, any> {
                   // 直接返回文件，不执行上传动作,等待最终提交
                   customRequest: (args: any) => service.upload({ ...args, userId })
                 }}/>
+            )}
+            {modalType === 'move' && (
+                <Form.Item label="目标文件夹" name="targetDir" required>
+                  <TreeSelect treeDataSimpleMode
+                              treeData={treeDataNode}
+                              dropdownStyle={{ maxHeight: 600, overflow: 'auto' }} placeholder="请选择目标文件夹"
+                              loadData={this.handleTreeSelectLoadData}
+                              loading={loading}
+                  />
+                </Form.Item>
             )}
           </ModalForm>
         </>

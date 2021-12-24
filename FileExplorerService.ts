@@ -212,6 +212,26 @@ export class FileExplorerService {
   }
 
   @action
+  async move(targetDir) {
+    if (this.loading) {
+      return;
+    }
+    this.loading = true;
+    try {
+      await this.execute({
+        url: `${this.baseApi}/files`,
+        method: HttpMethod.PATCH,
+        body: {
+          sourceIds: this.selectedFileIds,
+          targetDir
+        }
+      });
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  @action
   async del(ids) {
     if (this.loading) {
       return;
@@ -243,4 +263,27 @@ export class FileExplorerService {
 
     return execute(requestArgs);
   }
+
+  // /**
+  //  * 查询目录树
+  //  * @param directory 目录
+  //  * @param allFiles 所有文件
+  //  * @param ids 每层目录的下标
+  //  * @private
+  //  */
+  // private findTree(directory, allFiles, ids: number[] = []): [number[], TreeVirtualFile] | null {
+  //   const dirIndex = allFiles.findIndex(item => directory.startsWith(item.fullName));
+  //   if (dirIndex === -1) {
+  //     return null;
+  //   }
+  //   const dir = allFiles[dirIndex];
+  //   ids.push(dirIndex);
+  //   if (directory === dir.fullName) {
+  //     return [ids, dir];
+  //   }
+  //   if (Array.isArray(dir.children) && dir.children > 0) {
+  //     return this.findTree(directory, dir.children, ids);
+  //   }
+  //   return null;
+  // }
 }

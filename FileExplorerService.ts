@@ -226,6 +226,8 @@ export class FileExplorerService {
           targetDir
         }
       });
+      this.loading = false;
+      await this.refresh();
     } finally {
       this.loading = false;
     }
@@ -244,7 +246,7 @@ export class FileExplorerService {
         body: ids
       });
       this.loading = false;
-      this.refresh();
+      await this.refresh();
     } finally {
       this.loading = false;
     }

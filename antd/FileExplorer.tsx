@@ -162,6 +162,9 @@ export class FileExplorer extends Component<FileExplorerProps, any> {
       case 'move':
         await service.move(formData?.targetDir);
         break;
+      case 'upload':
+        await service.refresh();
+        break;
     }
     this.setState({ formVisible: false });
   }
@@ -320,12 +323,12 @@ export class FileExplorer extends Component<FileExplorerProps, any> {
                 <ProFormText name="name" label="文件夹名称" required/>
             )}
             {modalType === 'upload' && (
-                <ProFormUploadDragger name="file" required fieldProps={{
-                  multiple: true,
-                  accept: accept || '.jpg,.jpeg,.png,.mp4',
-                  // 直接返回文件，不执行上传动作,等待最终提交
-                  customRequest: (args: any) => service.upload({ ...args, userId })
-                }}/>
+                <ProFormUploadDragger name="file" required
+                                      fieldProps={{
+                                        multiple: true,
+                                        accept: accept || '.jpg,.jpeg,.png,.mp4',
+                                        customRequest: (args: any) => service.upload({ ...args, userId })
+                                      }}/>
             )}
             {modalType === 'move' && (
                 <Form.Item label="目标文件夹" name="targetDir" required>
